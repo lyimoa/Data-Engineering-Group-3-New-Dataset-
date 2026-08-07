@@ -6,21 +6,19 @@ This repository contains the work of Group 3 for the Data Engineering course. Ou
 
 ## The Dataset
 
-We are working with the **Healthcare Dataset** (prasad22, Kaggle): 55,500 hospital admission records in a single flat CSV, with 15 columns covering patient demographics, medical condition, admitting doctor and hospital, insurance provider, billing amount, room number, admission type, dates of admission/discharge, medication, and test results.
-
-We chose this dataset because it closely mirrors a real hospital operations table — one row per admission — which makes it a strong candidate for practicing dimensional/schema design: it has a clear mix of low-cardinality categorical fields (ideal for lookup tables) and high-cardinality, near-unique fields (patient name, doctor, hospital) that need to be handled differently.
+- **Source:** [Health Dataset](https://www.kaggle.com/datasets/prasad22/healthcare-dataset) (Kaggle)
+- **File:** `healthcare_dataset.csv`
+- **Domain:** Health
 
 ## Lab 1 — Data Problem Statement
 
 Before touching schema design, we explored the raw dataset to identify what was broken. We found:
 
 1. **534 duplicate admission records** — full-row duplicates that would inflate patient volume and room/bed usage counts in any downstream aggregation.
-2. **Negative billing amounts** (minimum observed: -$2,008.49, against a mean of ~$25,539) — a hospital bill cannot be negative; this points to either a data entry error or an unlabeled refund/adjustment.
+2. **Negative billing amounts** (minimum observed: -2,008.49, against a mean of ~25,539) — a hospital bill cannot be negative; this points to either a data entry error or an unlabeled refund/adjustment.
 3. **Inconsistent name capitalization** in `Name` and `Doctor` (e.g. "Bobby JacksOn", "LesLie TErRy") — this breaks exact-match joins, groupings, and deduplication, and likely masks additional duplicate records beyond the 534 caught by exact row matching.
 
-On the positive side: no missing values across any of the 15 columns, and admission/discharge dates are logically consistent (zero rows with discharge before admission).
-
-The full one-page Data Problem Statement is in this repo as `data_problem_statement_healthcare.md` (and `.docx`).
+The full one-page Data Problem Statement is in this repo as `data_problem_statement_healthcare.pdf`.
 
 ## Lab 2 — Schema Design Decision
 
@@ -52,3 +50,21 @@ All foreign key joins were verified to preserve the full row count (55,500 in `r
 **Sample query:** We ran an analytical query grouping admission count and billing totals by medical condition and insurance provider, directly supporting the cost-planning and billing-accuracy decisions identified in our Data Problem Statement. Notably, average billing came out fairly uniform (~$25,000–26,000) across all conditions and insurers, suggesting the billing figures in this dataset may be synthetically generated rather than reflecting real-world cost variation — worth flagging as an additional data quality observation.
 
 The SQL schema and queries are in this repo as the Lab 2 Colab notebook / SQL file.
+
+## Lab 3 — Re-runnable Ingestion Script
+
+The ingestion script fetches the healthcare CSV, validates it (rejects rows with negative billing amounts), and loads it idempotently into DuckDB using a row-hash primary key — safe to re-run any number of times without creating duplicates.
+
+**Run it (from the `ingestion/` folder):**
+```bash
+python3 ingest.py
+```
+
+**Proof of idempotency:** the script was run twice in succession. First run: 0 → 54,860 rows loaded (55,392 valid rows in, 532 exact-duplicate rows deduplicated via row-hash). Second run: 54,860 → 54,860 rows — unchanged, confirming no duplicates are created on re-run. See `ingestion/logs/ingestion_log.txt` for the full run log.
+
+## Team
+- Allen L. Lyimo
+- Asina Mchomvu
+- Frank Mtimbili
+- Claverfred Mhidze
+- Kelvin Mwanga
