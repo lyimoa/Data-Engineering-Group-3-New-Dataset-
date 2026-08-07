@@ -1,0 +1,12 @@
+[2026-08-08 01:26:06] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-08-08 01:26:06] Validated: 55392 rows passed, 108 rows rejected (negative billing amount)
+[2026-08-08 01:58:57] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-08-08 01:58:57] Validated: 55392 rows passed, 108 rows rejected (negative billing amount)
+[2026-08-08 02:03:44] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-08-08 02:03:44] Validated: 55392 rows passed, 108 rows rejected (negative billing amount)
+[2026-08-08 02:03:44] Loaded idempotently: 0 rows before, 54860 rows after (source had 55392 valid rows)
+[2026-08-08 02:03:44] Ingestion run complete. Final table row count: 54860
+[2026-08-08 02:07:26] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-08-08 02:07:26] Validated: 55392 rows passed, 108 rows rejected (negative billing amount)
+[2026-08-08 02:07:26] Loaded idempotently: 54860 rows before, 54860 rows after (source had 55392 valid rows)
+[2026-08-08 02:07:26] Ingestion run complete. Final table row count: 54860
