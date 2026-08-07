@@ -51,6 +51,17 @@ All foreign key joins were verified to preserve the full row count (55,500 in `r
 
 The SQL schema and queries are in this repo as the Lab 2 Colab notebook / SQL file.
 
+## Lab 3 — Re-runnable Ingestion Script
+
+The ingestion script fetches the healthcare CSV, validates it (rejects rows with negative billing amounts), and loads it idempotently into DuckDB using a row-hash primary key — safe to re-run any number of times without creating duplicates.
+
+**Run it (from the `ingestion/` folder):**
+```bash
+python3 ingest.py
+```
+
+**Proof of idempotency:** the script was run twice in succession. First run: 0 → 54,860 rows loaded (55,392 valid rows in, 532 exact-duplicate rows deduplicated via row-hash). Second run: 54,860 → 54,860 rows — unchanged, confirming no duplicates are created on re-run. See `ingestion/logs/ingestion_log.txt` for the full run log.
+
 ## Team
 - Allen L. Lyimo
 - Asina Mchomvu
