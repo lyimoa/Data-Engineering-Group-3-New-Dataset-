@@ -24,7 +24,7 @@ The full one-page Data Problem Statement is in this repo as `data_problem_statem
 
 We chose a **deliberate hybrid** schema: normalized lookup tables for low-cardinality categorical columns, joined to one central fact table (`fact_admissions`) at the grain of "one hospital admission."
 
-**Why not one big table?** Storing text values like `"UnitedHealthcare"` or `"Hypertension"` repeatedly across 55,500 rows wastes space and risks inconsistent spelling/casing over time — we saw exactly this problem with `Name`/`Doctor` capitalization in Lab 1. Splitting these into lookup tables means each value is stored once, referenced by a small integer key, and can be corrected or extended in a single place.
+**Why not one big table?** Storing text values like `"UnitedHealthcare"` or `"Hypertension"` repeatedly across 55,500 rows wastes space and risks inconsistent spelling/casing over time, we saw exactly this problem with `Name`/`Doctor` capitalization in Lab 1. Splitting these into lookup tables means each value is stored once, referenced by a small integer key, and can be corrected or extended in a single place.
 
 **How we decided what becomes a dimension:** We checked actual distinct-value counts across the full dataset first, rather than assuming. Six columns had small, fixed value sets:
 
@@ -39,11 +39,11 @@ We chose a **deliberate hybrid** schema: normalized lookup tables for low-cardin
 
 These became lookup tables: `dim_gender`, `dim_blood_type`, `dim_medical_condition`, `dim_insurance_provider`, `dim_admission_type`, `dim_test_results`.
 
-**What stayed in the fact table:** `Doctor` (40,341 distinct), `Hospital` (39,876 distinct), and `Name` (49,992 distinct) are all near-unique relative to 55,500 total rows — normalizing them would add join overhead without meaningfully reducing storage or improving consistency, since almost every value appears once or twice anyway. `Room Number` (400 distinct, clearly bounded/reused) was a borderline case, but since the dataset has no other room attributes (floor, ward, etc.) to hang off a `dim_room` table, we kept it as a plain integer in the fact table — flagged as a future dimension candidate if richer room data becomes available.
+**What stayed in the fact table:** `Doctor` (40,341 distinct), `Hospital` (39,876 distinct), and `Name` (49,992 distinct) are all near-unique relative to 55,500 total rows, normalizing them would add join overhead without meaningfully reducing storage or improving consistency, since almost every value appears once or twice anyway. `Room Number` (400 distinct, clearly bounded/reused) was a borderline case, but since the dataset has no other room attributes (floor, ward, etc.) to hang off a `dim_room` table, we kept it as a plain integer in the fact table flagged as a future dimension candidate if richer room data becomes available.
 
 **Schema summary:**
 - `fact_admissions` — one row per hospital admission (55,500 rows), holding measures (`billing_amount`), degenerate attributes (`patient_name`, `doctor`, `hospital`, `room_number`, `age`, dates, `medication`), and foreign keys into the six lookup tables
-- `dim_gender`, `dim_blood_type`, `dim_medical_condition`, `dim_insurance_provider`, `dim_admission_type`, `dim_test_results` — small reference tables with surrogate integer keys
+- `dim_gender`, `dim_blood_type`, `dim_medical_condition`, `dim_insurance_provider`, `dim_admission_type`, `dim_test_results` - small reference tables with surrogate integer keys
 
 All foreign key joins were verified to preserve the full row count (55,500 in `raw_admissions` → 55,500 in `fact_admissions`), confirming no category value was missed by a lookup table.
 
