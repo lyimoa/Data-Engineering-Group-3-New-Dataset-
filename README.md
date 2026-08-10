@@ -14,7 +14,7 @@ This repository contains the work of Group 3 for the Data Engineering course. Ou
 
 Before touching schema design, we explored the raw dataset to identify what was broken. We found:
 
-1. **534 duplicate admission records** — full-row duplicates that would inflate patient volume and room/bed usage counts in any downstream aggregation.
+1. **534 duplicate admission records** - full-row duplicates that would inflate patient volume and room/bed usage counts in any downstream aggregation.
 2. **Negative billing amounts** (minimum observed: -2,008.49, against a mean of ~25,539) — a hospital bill cannot be negative; this points to either a data entry error or an unlabeled refund/adjustment.
 3. **Inconsistent name capitalization** in `Name` and `Doctor` (e.g. "Bobby JacksOn", "LesLie TErRy") — this breaks exact-match joins, groupings, and deduplication, and likely masks additional duplicate records beyond the 534 caught by exact row matching.
 
@@ -47,20 +47,20 @@ These became lookup tables: `dim_gender`, `dim_blood_type`, `dim_medical_conditi
 
 All foreign key joins were verified to preserve the full row count (55,500 in `raw_admissions` → 55,500 in `fact_admissions`), confirming no category value was missed by a lookup table.
 
-**Sample query:** We ran an analytical query grouping admission count and billing totals by medical condition and insurance provider, directly supporting the cost-planning and billing-accuracy decisions identified in our Data Problem Statement. Notably, average billing came out fairly uniform (~$25,000–26,000) across all conditions and insurers, suggesting the billing figures in this dataset may be synthetically generated rather than reflecting real-world cost variation — worth flagging as an additional data quality observation.
+**Sample query:** We ran an analytical query grouping admission count and billing totals by medical condition and insurance provider, directly supporting the cost-planning and billing-accuracy decisions identified in our Data Problem Statement. Notably, average billing came out fairly uniform (~$25,000–26,000) across all conditions and insurers, suggesting the billing figures in this dataset may be synthetically generated rather than reflecting real-world cost variation worth flagging as an additional data quality observation.
 
 The SQL schema and queries are in this repo as the Lab 2 Colab notebook / SQL file.
 
 ## Lab 3 — Re-runnable Ingestion Script
 
-The ingestion script fetches the healthcare CSV, validates it (rejects rows with negative billing amounts), and loads it idempotently into DuckDB using a row-hash primary key — safe to re-run any number of times without creating duplicates.
+The ingestion script fetches the healthcare CSV, validates it (rejects rows with negative billing amounts), and loads it idempotently into DuckDB using a row-hash primary key safe to re-run any number of times without creating duplicates.
 
 **Run it (from the `ingestion/` folder):**
 ```bash
 python3 ingest.py
 ```
 
-**Proof of idempotency:** the script was run twice in succession. First run: 0 → 54,860 rows loaded (55,392 valid rows in, 532 exact-duplicate rows deduplicated via row-hash). Second run: 54,860 → 54,860 rows — unchanged, confirming no duplicates are created on re-run. See `ingestion/logs/ingestion_log.txt` for the full run log.
+**Proof of idempotency:** the script was run twice in succession. First run: 0 → 54,860 rows loaded (55,392 valid rows in, 532 exact-duplicate rows deduplicated via row-hash). Second run: 54,860 → 54,860 rows unchanged, confirming no duplicates are created on re-run. See `ingestion/logs/ingestion_log.txt` for the full run log.
 
 ## Team
 - Allen L. Lyimo
