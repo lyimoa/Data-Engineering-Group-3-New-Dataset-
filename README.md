@@ -62,6 +62,35 @@ python3 ingest.py
 
 **Proof of idempotency:** the script was run twice in succession. First run: 0 → 54,860 rows loaded (55,392 valid rows in, 532 exact-duplicate rows deduplicated via row-hash). Second run: 54,860 → 54,860 rows unchanged, confirming no duplicates are created on re-run. See `ingestion/logs/ingestion_log.txt` for the full run log.
 
+## Lab 4 — Storage & Query Benchmark
+
+Unit 4's core lesson is not to assume a dataset needs "big data" infrastructure — measure it. We benchmarked our own ~55,500-row healthcare admissions dataset against the three-question decision path from the lecture (fits in memory? fits on one disk? truly beyond one machine?) by running the same aggregate query three ways: pandas on CSV, PostgreSQL, and DuckDB on Parquet.
+
+**Query benchmarked:** average billing amount and admission count, grouped by medical condition — a real query a hospital administrator or insurance analyst (our Lab 1 audience) would actually run.
+
+**File size comparison:**
+
+| Format | Size |
+|---|---|
+| CSV | 8,202.4 KB |
+| Parquet | 2,755.6 KB |
+
+Converting to Parquet alone shrank the file by roughly 3x, purely from columnar layout and compression — no data was changed.
+
+**Query time comparison:**
+
+| Tool | Cold run | Warm (repeated) run |
+|---|---|---|
+| pandas (CSV) | 0.0192 s | 0.0449 s |
+| PostgreSQL | 0.0277 s | 0.0297 s |
+| DuckDB (Parquet) | 0.2636 s | 0.0093 s |
+
+DuckDB's first run was the slowest of the three, not the fastest as the lecture's illustrative numbers suggested. Investigating this: the 0.2636s cold run was a one-time cost from initializing the DuckDB engine and opening the Parquet file for the first time in the session — not the query itself. Rerunning the identical query afterward dropped to 0.0093s, faster than either pandas or PostgreSQL, while pandas and PostgreSQL stayed roughly stable across their own repeated runs. This is a direct, self-measured example of the unit's warning against "believing benchmarks you never ran" — the raw first number would have supported the wrong conclusion.
+
+**Verdict:** We choose DuckDB with Parquet. Once warmed up, it was the fastest of all three tools tested, and its Parquet file is roughly 3x smaller than the raw CSV. Its one-time cold-start cost is a session-level engine initialization, not a repeated query cost, so it doesn't change the recommendation. DuckDB gives Postgres-level reliability with pandas-level simplicity and zero server setup — the right tool for this dataset now, and it scales better if the data grows later.
+
+The benchmark notebook (data load, Postgres/Parquet setup, and all timed queries) is in this repo as the Lab 4 Colab notebook.
+
 ## Team
 - Allen L. Lyimo
 - Asina Mchomvu
