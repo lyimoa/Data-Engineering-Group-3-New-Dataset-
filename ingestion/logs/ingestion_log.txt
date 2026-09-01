@@ -18,3 +18,11 @@
 [2026-08-10 22:33:51] Validated: 55392 rows passed, 108 rows rejected (negative billing amount)
 [2026-08-10 22:33:52] Loaded idempotently: 54860 rows before, 54860 rows after (source had 55392 valid rows)
 [2026-08-10 22:33:52] Ingestion run complete. Final table row count: 54860
+[2026-08-11 15:28:39] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-08-11 15:28:39] Validated: 55392 rows passed, 108 rows rejected (negative billing amount)
+[2026-08-11 15:28:40] Loaded idempotently: 54860 rows before, 54860 rows after (source had 55392 valid rows)
+[2026-08-11 15:28:40] Ingestion run complete. Final table row count: 54860
+[2026-08-11 15:31:23] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-08-11 15:31:23] Validated: 55392 rows passed, 108 rows rejected (negative billing amount)
+[2026-08-11 15:31:23] Loaded idempotently: 54860 rows before, 54860 rows after (source had 55392 valid rows)
+[2026-08-11 15:31:24] Ingestion run complete. Final table row count: 54860
