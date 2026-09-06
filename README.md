@@ -91,6 +91,46 @@ DuckDB's first run was the slowest of the three, not the fastest as the lecture'
 
 The benchmark notebook (data load, Postgres/Parquet setup, and all timed queries) is in this repo as the Lab 4 Colab notebook.
 
+## Lab 5 — Cloud Data Engineering (BigQuery)
+
+Unit 5's core lesson is that cloud platforms separate storage from compute, and bill on four "meters" (storage, compute, scanning, egress) — so we designed and built a cloud pipeline for our healthcare dataset to see this in practice, not just on paper.
+
+**Setup:** We uploaded `healthcare_dataset.csv` into a BigQuery sandbox project (`lab-5-healthcare`, region `africa-south1`), creating a table `Admissions` (55,500 rows, 8.06 MB) inside dataset `healthcare_lab_5`.
+
+**Sandbox query:** We ran an aggregate query — average billing amount by medical condition — which BigQuery estimated at 975.81 KB processed, confirming the "scanning" cost meter directly: even a tiny table has a real, visible cost to *read*, separate from the cost to *store*.
+
+**Implemented pipeline (beyond the lab's minimum):** We rebuilt Lab 3's `ingest.py` validation and deduplication logic as a real, chained BigQuery pipeline (BigQuery Studio's Pipelines feature, built on Dataform), where each stage reads from the previous stage's output:
+
+| Table | Rows | Logic |
+|---|---|---|
+| `Admissions` | 55,500 | Raw upload |
+| `Admissions_validated` | 55,392 | Rejects `Billing Amount < 0` |
+| `Admissions_deduped` | 54,860 | `SELECT DISTINCT` |
+
+These numbers match Lab 3's `ingest.py` output exactly (55,392 valid rows in, 532 duplicates removed, 54,860 final).
+
+**Does cleaning the data change the answer?** We re-ran the billing-by-condition query on both the raw `Admissions` table and the final `Admissions_deduped` table:
+
+| Medical Condition | Raw avg billing | Cleaned avg billing | Change |
+|---|---|---|---|
+| Obesity | 25,805.97 | 25,859.22 | +53.25 |
+| Diabetes | 25,638.41 | 25,714.33 | +75.92 |
+| Asthma | 25,635.25 | 25,685.39 | +50.14 |
+| Hypertension | 25,497.10 | 25,559.84 | +62.75 |
+| Arthritis | 25,497.33 | 25,542.90 | +45.57 |
+| Cancer | 25,161.79 | 25,205.92 | +44.13 |
+
+Every average rose slightly after cleaning, and Hypertension and Arthritis swapped rank order — proof that validation isn't just a formality, it can change which condition ranks where.
+
+**Sandbox limitations we hit (and documented, not worked around with billing):**
+- **DML and scheduling are blocked** in sandbox mode — `INSERT` statements and scheduled pipeline runs both require billing to be enabled, so we used `CREATE TABLE ... AS SELECT` (DDL) instead.
+- **Partition expiration is mandatory and capped at 60 days** in sandbox mode. Since our `Date of Admission` values span 2019–2024, partitioning by that column deleted every partition instantly. This is a genuine sandbox constraint, not a bug — production would need billing enabled to retain historical partitions.
+- **Dataform's "Run task" button was unreliable** — it sometimes compiled and previewed correct results (e.g. 55,392 rows) without persisting the table, confirmed via `INFORMATION_SCHEMA.TABLES`. Running the same compiled SQL directly as a query reliably created the table; we believe this is specific to the sandbox tier combined with an institutional Google Workspace account.
+
+**Serve layer — Streamlit dashboard:** Rather than Looker Studio, we built the "serve" stage as a Python/Streamlit dashboard (`Lab 5 - Dashboard/app.py`) querying `Admissions_deduped` directly via `google-cloud-bigquery` — reusing the same pandas skills from earlier labs. It includes sidebar filters (condition, gender, admission type, date range, age), KPI cards, multiple charts (bar, donut, line, box plot), a live pipeline row-count summary, and a CSV export.
+
+The full one-page pipeline design writeup (with screenshots) is in this repo as `Lab5_Cloud_Pipeline_Design.pdf`. The dashboard code is in `Lab 5 - Dashboard/`.
+
 ## Team
 - Allen L. Lyimo
 - Asina Mchomvu
