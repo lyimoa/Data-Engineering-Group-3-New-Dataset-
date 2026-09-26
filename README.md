@@ -131,6 +131,48 @@ Every average rose slightly after cleaning, and Hypertension and Arthritis swapp
 
 The full one-page pipeline design writeup (with screenshots) is in this repo as `Lab5_Cloud_Pipeline_Design.pdf`. The dashboard code is in `Lab 5 - Dashboard/`.
 
+
+## Lab 6 — Data Quality & Governance
+
+Unit 6's core lesson is that data quality has to be **enforced in code, not assumed from a one-time look at the data**. We extended `ingest.py` from Lab 3's single validity check into five executable checks covering validity, completeness, and uniqueness, and changed its failure behavior from silently dropping bad rows to quarantining them with a documented reason.
+
+**Five executable checks:**
+
+| # | Check | Dimension | Result on real data |
+|---|---|---|---|
+| 1 | `Billing Amount >= 0` | Validity | 108 rows quarantined (`negative_billing_amount`) |
+| 2 | `Age` between 0 and 120 | Validity | 0 rows (clean in this dataset) |
+| 3 | `Discharge Date >= Date of Admission` | Validity | 0 rows (clean in this dataset) |
+| 4 | `Name`, `Medical Condition`, `Billing Amount` not null | Completeness | 0 rows (clean in this dataset) |
+| 5 | No exact duplicate rows (row-hash) | Uniqueness | 532 rows quarantined (`duplicate_row`) |
+
+Checks 2–4 catch nothing on our real 55,500-row dataset — not because they're dead code, but because this particular Kaggle dataset happens to be clean on age, discharge ordering, and required fields. To prove they actually fire rather than just look correct on paper, we ran a small one-off test (`test_quarantine.py`) that imports the same `validate()` function from `ingest.py` and feeds it three deliberately bad rows: an age of 250, a discharge date before the admission date, and a missing `Name`. All three were correctly quarantined under their respective reason codes and written into the same `quarantine` table used by the real pipeline, confirming the checks are live production logic, not simulated.
+
+**Quarantine, not silent drop:** Every failing row — whether from real data or the test — is written to a `quarantine` table (`row_hash`, `reject_reason`, `quarantined_at`, plus the original row) instead of being discarded. Across two full pipeline runs, the quarantine table holds 1,283 rows: 216 negative-billing (108 × 2 runs), 1,064 duplicates (532 × 2 runs), and the 3 injected test rows. This is only safe to leave as an append-only log because ingestion is idempotent (Lab 3) — re-running never re-corrupts the clean table, even though the quarantine log grows on every run.
+
+**Lineage — tracing a number back to its source:**
+healthcare_dataset.csv (raw, 55,500 rows)
+│
+▼
+ingest.py: validate() — 5 quality checks
+│
+├──► quarantine table (failing rows + reason code)
+│
+▼
+admissions (clean, deduplicated, row-hash keyed — 54,860 rows)
+│
+▼
+fact_admissions + dim_gender, dim_blood_type, dim_medical_condition,
+dim_insurance_provider, dim_admission_type, dim_test_results (Lab 2 star schema)
+│
+▼
+analytical queries / dashboards (e.g. billing by condition and insurer)
+
+
+Any published number (e.g. "average billing by medical condition") can be traced back hop by hop: aggregation query → `fact_admissions` join → `admissions` clean table → `ingest.py` validation → the original raw CSV row, with every row that didn't make it documented in `quarantine` rather than silently vanishing.
+
+**PDPA (Tanzania Data Protection Act) note:** The dataset contains one personal-data field, `Name`, alongside indirectly identifying fields (`Age`, `Gender`, `Medical Condition`, `Hospital`, `Doctor`). It is a synthetic, publicly published Kaggle dataset rather than real patient records, and our use of it is limited to coursework analytics under DSAI 6226 — a lawful basis of academic/legitimate interest, not a live clinical system. In line with the PDPA's minimization principle, we do not add or infer any further personal fields beyond what the raw file already contains, and the quarantine table stores full failing rows only for pipeline debugging, not for any secondary use. Were this dataset real patient data rather than synthetic, access to `Name` and the medical fields would need to be restricted to authorized project members, the data would need to stay in-country per PDPA's cross-border transfer restrictions, and this section would need to state a specific retention period rather than keeping rows indefinitely.
+
 ## Team
 - Allen L. Lyimo
 - Asina Mchomvu
