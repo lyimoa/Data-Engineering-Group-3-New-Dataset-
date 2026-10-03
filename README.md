@@ -173,6 +173,26 @@ Any published number (e.g. "average billing by medical condition") can be traced
 
 **PDPA (Tanzania Data Protection Act) note:** The dataset contains one personal-data field, `Name`, alongside indirectly identifying fields (`Age`, `Gender`, `Medical Condition`, `Hospital`, `Doctor`). It is a synthetic, publicly published Kaggle dataset rather than real patient records, and our use of it is limited to coursework analytics under DSAI 6226 — a lawful basis of academic/legitimate interest, not a live clinical system. In line with the PDPA's minimization principle, we do not add or infer any further personal fields beyond what the raw file already contains, and the quarantine table stores full failing rows only for pipeline debugging, not for any secondary use. Were this dataset real patient data rather than synthetic, access to `Name` and the medical fields would need to be restricted to authorized project members, the data would need to stay in-country per PDPA's cross-border transfer restrictions, and this section would need to state a specific retention period rather than keeping rows indefinitely.
 
+
+## Lab 7 — Analytics From the Pipeline
+
+Unit 7's core lesson is that dashboards should be *consumers* of the pipeline, not independent calculators — every chart should read from one small, curated, documented table rather than recomputing its own numbers from raw data. We built that table, defined its numbers once in writing, and proved the whole chain reacts honestly when a refresh is missed.
+
+**The output table:** `build_marts.py` reads the clean `admissions` table (post Lab 3/6 validation) and builds `marts_admissions_daily` — one row per admission date, with `total_admissions`, `avg_billing_amount`, and a `refreshed_at` timestamp stamped automatically on every run. It currently holds 1,827 daily rows covering the full dataset.
+
+**Metrics defined once:** `metrics.md` documents both published numbers — formula, grain (per admission date), filters (clean rows only, i.e. whatever Lab 6's 5 quality checks already excluded), and an owner — so the dashboard never redefines them independently.
+
+**One consumer view:** `dashboard.py` (Streamlit) reads only from `marts_admissions_daily` — never from raw data — and displays the two metrics as KPI cards plus two daily trend charts.
+
+**Freshness is provable, not decorative:** The dashboard computes a live freshness label from `MAX(refreshed_at)` against the current time, promising data no older than 24 hours. Rather than waiting a real day to prove the warning works, the dashboard includes a demo control that backdates `refreshed_at` by 30 hours to simulate a missed pipeline run — the label immediately flips from a green "Data as of..." confirmation to a red "STALE DATA" warning, and a second control reruns the real `build_marts_admissions_daily()` function to restore it. This proves the freshness mechanism actually reacts to pipeline failures rather than always looking fine.
+
+**Run it:**
+```bash
+cd ingestion
+python3 build_marts.py      # rebuilds the mart from the clean admissions table
+streamlit run dashboard.py  # launches the consumer view
+```
+
 ## Team
 - Allen L. Lyimo
 - Asina Mchomvu
