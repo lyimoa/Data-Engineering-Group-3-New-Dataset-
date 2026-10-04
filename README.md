@@ -213,6 +213,30 @@ python3 build_features.py
 
 Deliverables: `build_features.py`, `features.md`, `split_strategy.md`, `DATASHEET.md`.
 
+
+## Lab 9 — Optimisation & Performance
+
+Unit 9's core lesson is **measure first, fix the one real bottleneck, measure again** — intuition about where time goes is unreliable even for experts. We profiled the full pipeline before assuming anything.
+
+**Profiling:** `profile_pipeline.py` times every real, runnable pipeline step (`fetch_source`, `validate`, `load_to_duckdb`, `build_marts`, `build_features`) and writes results to `performance_results.csv`. Each phase was run 3 times, not once, per the unit's warning against "benchmarking once."
+
+**Our first guess was wrong, and we didn't act on it.** We expected the CSV read would be the bottleneck, matching the unit's own worked example. Measuring proved otherwise: `fetch_source` was consistently fast (~0.14s), while `build_features.py` (Lab 8's feature table build) consistently dominated at ~1.29s — nearly double the next-slowest step, across all three baseline runs.
+
+**The fix:** `build_features.py` computed each patient's age bracket with a row-by-row `.apply()` call — 54,860 individual Python function calls. We replaced it with a single vectorized `pd.cut()` operation — a query/processing rewrite, one of the unit's four named improvement types, applied to pandas instead of SQL.
+
+**Result:** `build_features.py` dropped from 1.287s to 1.134s on average — a real, reproducible ~12% improvement, with every "after" run faster than every "before" run. The other four steps stayed flat, as expected, since only `build_features.py` was changed. The full before/after table, numbers, and an honest discussion of why percentages on small baseline times (e.g. `build_marts`) are misleading, are in `performance_report.md`.
+
+**Dashboard:** `performance_dashboard.py` (Streamlit) shows the before/after comparison as a grouped bar chart, with the actual duration labeled on each bar.
+
+**Run it (from the `ingestion/` folder):**
+```bash
+python3 profile_pipeline.py before   # repeat 3x before any change
+python3 profile_pipeline.py after    # repeat 3x after the fix
+streamlit run performance_dashboard.py
+```
+
+Deliverables: `profile_pipeline.py`, `performance_results.csv`, `performance_dashboard.py`, `performance_report.md`.
+
 ## Team
 - Allen L. Lyimo
 - Asina Mchomvu

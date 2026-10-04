@@ -66,3 +66,45 @@
 [2026-09-22 16:51:43]   - discharge_before_admission: 1 rows
 [2026-09-22 16:51:43]   - missing_required_field: 1 rows
 [2026-09-22 16:51:43] Quarantined 3 rows written to quarantine table
+[2026-10-04 17:11:59] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-10-04 17:11:59] Validated: 55392 rows passed, 108 rows quarantined
+[2026-10-04 17:11:59]   - negative_billing_amount: 108 rows
+[2026-10-04 17:11:59] Uniqueness check: 54860 unique rows, 532 duplicate rows quarantined
+[2026-10-04 17:11:59] Quarantined 108 rows written to quarantine table
+[2026-10-04 17:11:59] Quarantined 532 rows written to quarantine table
+[2026-10-04 17:11:59] Loaded idempotently: 54860 rows before, 54860 rows after (this run had 54860 clean rows)
+[2026-10-04 17:15:29] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-10-04 17:15:30] Validated: 55392 rows passed, 108 rows quarantined
+[2026-10-04 17:15:30]   - negative_billing_amount: 108 rows
+[2026-10-04 17:15:30] Uniqueness check: 54860 unique rows, 532 duplicate rows quarantined
+[2026-10-04 17:15:30] Quarantined 108 rows written to quarantine table
+[2026-10-04 17:15:30] Quarantined 532 rows written to quarantine table
+[2026-10-04 17:15:30] Loaded idempotently: 54860 rows before, 54860 rows after (this run had 54860 clean rows)
+[2026-10-04 17:15:43] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-10-04 17:15:43] Validated: 55392 rows passed, 108 rows quarantined
+[2026-10-04 17:15:43]   - negative_billing_amount: 108 rows
+[2026-10-04 17:15:43] Uniqueness check: 54860 unique rows, 532 duplicate rows quarantined
+[2026-10-04 17:15:43] Quarantined 108 rows written to quarantine table
+[2026-10-04 17:15:43] Quarantined 532 rows written to quarantine table
+[2026-10-04 17:15:43] Loaded idempotently: 54860 rows before, 54860 rows after (this run had 54860 clean rows)
+[2026-10-04 17:41:17] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-10-04 17:41:17] Validated: 55392 rows passed, 108 rows quarantined
+[2026-10-04 17:41:17]   - negative_billing_amount: 108 rows
+[2026-10-04 17:41:17] Uniqueness check: 54860 unique rows, 532 duplicate rows quarantined
+[2026-10-04 17:41:18] Quarantined 108 rows written to quarantine table
+[2026-10-04 17:41:18] Quarantined 532 rows written to quarantine table
+[2026-10-04 17:41:18] Loaded idempotently: 54860 rows before, 54860 rows after (this run had 54860 clean rows)
+[2026-10-04 17:41:37] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-10-04 17:41:37] Validated: 55392 rows passed, 108 rows quarantined
+[2026-10-04 17:41:37]   - negative_billing_amount: 108 rows
+[2026-10-04 17:41:37] Uniqueness check: 54860 unique rows, 532 duplicate rows quarantined
+[2026-10-04 17:41:37] Quarantined 108 rows written to quarantine table
+[2026-10-04 17:41:37] Quarantined 532 rows written to quarantine table
+[2026-10-04 17:41:38] Loaded idempotently: 54860 rows before, 54860 rows after (this run had 54860 clean rows)
+[2026-10-04 17:41:43] Fetched source file: source_data/healthcare_dataset.csv (55500 rows read)
+[2026-10-04 17:41:43] Validated: 55392 rows passed, 108 rows quarantined
+[2026-10-04 17:41:43]   - negative_billing_amount: 108 rows
+[2026-10-04 17:41:44] Uniqueness check: 54860 unique rows, 532 duplicate rows quarantined
+[2026-10-04 17:41:44] Quarantined 108 rows written to quarantine table
+[2026-10-04 17:41:44] Quarantined 532 rows written to quarantine table
+[2026-10-04 17:41:44] Loaded idempotently: 54860 rows before, 54860 rows after (this run had 54860 clean rows)

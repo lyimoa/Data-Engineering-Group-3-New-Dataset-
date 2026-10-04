@@ -9,13 +9,6 @@ CHRONIC_CONDITIONS = {"Diabetes", "Hypertension", "Asthma"}
 def log(msg):
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
 
-def age_group(age):
-    if age < 18:
-        return "Child"
-    elif age < 65:
-        return "Adult"
-    else:
-        return "Senior"
 
 def build_feature_table(con):
     """
@@ -39,7 +32,7 @@ def build_feature_table(con):
     df["admission_month"] = df["Date of Admission"].dt.month
     df["admission_dayofweek"] = df["Date of Admission"].dt.dayofweek
     df["is_weekend_admission"] = df["admission_dayofweek"].isin([5, 6])
-    df["age_group"] = df["Age"].apply(age_group)
+    df["age_group"] = pd.cut(df["Age"], bins=[-1, 17, 64, 200], labels=["Child", "Adult", "Senior"]).astype(str)
     df["is_chronic_condition"] = df["Medical Condition"].isin(CHRONIC_CONDITIONS)
 
     # ---- Time-based split: sort by admission date, assign by quantile ----
