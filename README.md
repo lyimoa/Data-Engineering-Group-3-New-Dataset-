@@ -193,6 +193,26 @@ python3 build_marts.py      # rebuilds the mart from the clean admissions table
 streamlit run dashboard.py  # launches the consumer view
 ```
 
+
+## Lab 8 — Preparing Data for Machine Learning
+
+Unit 8's core lesson is that ML-readiness is decided *before* modeling, not discovered during it. We built a dedicated feature table, locked in a split strategy up front, and audited every column for leakage, rather than letting a model's good test score hide a flaw in how the data was prepared.
+
+**Feature table (`ml_features`, 54,860 rows):** Built by `build_features.py` from the clean `admissions` table (Lab 6's output). It carries the useful raw columns plus six engineered features — `length_of_stay_days`, `admission_month`, `admission_dayofweek`, `is_weekend_admission`, `age_group`, and `is_chronic_condition` — each with a documented story and a leakage verdict in `features.md`. `Name`, `Doctor`, `Hospital`, `Room Number`, and the borderline `Test Results` column were deliberately excluded; the reasoning for each exclusion is in `features.md`.
+
+**Leakage audit:** Every column in `ml_features` was checked against one question — *would this value be knowable at prediction time, before the outcome is known?* — covering all three leakage types (future, split, target). The full column-by-column verdicts are in `features.md`.
+
+**Split strategy (decided, not discovered):** A single time-based 70/15/15 split by `admission_date`, computed once in `build_features.py` and stored as a `split` column (train ends 2022-11-04, validate ends 2023-08-05). We chose time-based over group-based splitting using the same cardinality evidence from Lab 2 (`Doctor` 40,341/55,500, `Hospital` 39,876/55,500, `Name` 49,992/55,500 distinct — all near-unique), which makes grouping by those fields impractical. The full reasoning, including a stated residual limitation (possible Doctor/Hospital overlap across the time boundary), is in `split_strategy.md`.
+
+**Datasheet:** `DATASHEET.md` documents the dataset's origin, composition, known limitations (including the synthetic-billing-amount signal from Lab 2), and intended use, following the Gebru et al. "Datasheets for Datasets" framework.
+
+**Run it (from the `ingestion/` folder):**
+```bash
+python3 build_features.py
+```
+
+Deliverables: `build_features.py`, `features.md`, `split_strategy.md`, `DATASHEET.md`.
+
 ## Team
 - Allen L. Lyimo
 - Asina Mchomvu
